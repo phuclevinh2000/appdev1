@@ -1,1 +1,47 @@
-# This is applocation development ver1
+# This is applocation development ver1.1 -------- by Phuc Le
+
+This application offer a possibility to turn a Rasberry Pi as a sound device. The application comees with 2 functions: a sound collector and a test tone generator
+
+List of content
+	1. Configuration Instructions
+	2. Instalation Instructions
+	3. Operating Instructions
+	4. List of Files
+	5. Copyright / Copyleft
+	6. Contact Information: phuclevinh2000@gmail.com, e1800951
+	7: Credits and Acknowledgements
+
+1. Configuration Instructions
+	- 1 pc that runs Linux
+	- 1 headphone and mic
+	- 1 Rasberry Pi
+2. Instalation Instructions
+	Step 1: turn on the Rasberry Pi and connect with the device, log in to your account
+	Step 2: connect the USB sound card and  
+3. Operating Instructions
+
+4. List of Files
+	- screen.c
+	- makefile
+	- screen.h
+	- main.c
+	- sound.c
+	- sound.h
+	- sound.php
+	- makefile
+	- comm.h
+	- comm.c
+	- testcurl.c
+
+5.  Copyright: This project I made with lots of help from my teacher Gao Chao as well as my friend
+	Copyleft: Wiki, cplusplus.com,...
+
+6. Contact information:
+	- name: Phuc Le Vinh 
+	- mail: phuclevinh2000@gmail.com
+	- student number: e1800951
+	- phone number: 0465407847
+
+7: Credits and Acknowledgements
+	- This subject has 4 Credits in total
+	- Language that we use in this app: PHP, C
