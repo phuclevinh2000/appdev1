@@ -1,12 +1,12 @@
-OBJ = main.o screen.o sound.o
+OBJ = main.o screen.o sound.o comm.o
 APPNAME = sound.out
-$(APPNAME) : $(OBJ)
-	gcc -o $(APPNAME) $(OBJ) -lm	# math library is used
-%.o: %.c
-	gcc -c -o $@ $<
 
+# math library is used 
+$(APPNAME) : $(OBJ)
+	gcc -o $(APPNAME) $(OBJ) -lm -lcurl
+%.o : %.c
+	gcc -c -o $@ $<
 clean :
 	rm $(APPNAME) $(OBJ)
-
 tar :
-	tar cf sound.tar *.c *.h  makefile
+	tar cf sound.tar *.c *.h makefile

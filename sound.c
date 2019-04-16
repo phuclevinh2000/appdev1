@@ -2,39 +2,122 @@
 #include "sound.h"
 #include <math.h>
 #include "screen.h"
+
+void fillID(char *d, const char *s)
+{
+	for(int i=0; i<4; i++)
+		*d++ = *s++;
+}
+
+void testTone(int c, int fl, int fr, float d){
+	if(c<1 || c>2){
+		printf("Wrong number of channels. \n");
+		return;
+	}
+	if(fl<50 || fl>16000){
+		printf("frequency is out of range\n");
+		return;
+	}
+	if(d<1.0 || d>10.0){
+		printf("Wrong duration!\n");
+		return;
+	}
+	// all the arguments are okay, the  rest of code is to
+	//1) make a correct wave header, 2) generates correct samples
+	//3) write both header, 2) generate correct sample
+	struct WAVHDR h;
+	int samples = 44100*d;
+	fillID(h.ChunkID, "RIFF");
+	fillID(h.Format, "WAVE");
+	fillID(h.Subchunk1ID, "fmt ");
+	fillID(h.Subchunk2ID, "data");
+	h.Subchunk1Size = 16;
+	h.AudioFormat = 1;
+	h.SampleRate = 44100;
+	h.BitsPerSample = 16;
+	h.BlockAlign = c*16/8;
+	h.NumChannels = c;
+	h.ByteRate = 44100*c*16/8;
+	h.Subchunk2Size = samples*c*16/8;
+	h.ChunkSize = h.Subchunk2Size + 36;
+	FILE *fp = fopen("testTone.wav", "w");
+	if(fp == NULL){
+		printf("Cannot open a file\n");
+		return;
+	}
+	fwrite(&h, sizeof(h), 1, fp);	//write the header to file
+	//generate samples, and write to file
+	for(int i=0; i<samples; i++){
+		short sL =32767.0 * sin(2*PI*fl*i/44100);
+		fwrite(&sL, sizeof(short), 1, fp);
+		if(c==2){
+			short sR  = 32767.0 * sin(2*PI*fr*i/44100);
+			fwrite(&sR, sizeof(short), 1, fp);
+		}
+	}
+	fclose(fp);
+	printf("TestTone is generation!\n");
+}
 void showID(char *idname,char *id){
 	int i;
 	printf("%s : ", idname);
 	for(i=0; i<4; i++)
-		printf("%c", id[i]);
+		printf("&c", id[i]);
 	puts("");
+
 }
 
-//this function gets one second of sample (16000), and calculates
-// 80 pieces of decibel value, we knon we need to calculate one decibel 
-// value from 200 samples, decibel value is calculated by RMS formular
+
+
+// this function is only called by displayWAVDATA(), so no need to put
+
+// a declaration in sound.h. The function finds how many peaks from 80-pieces
+
+// of decibel values
+
+int findPeaks(int d[]){
+    int c = 0;
+    for(int i=1; i<80; i++){
+        if(d[i] >= 75 && d[i-1] < 75) c++;
+    }
+    if(d[0] >= 75) c++;
+    return c;
+}
+
+
+
+// this function gets 1 second of samples (16000), and calculates
+// 80 pieces of decibel value, we know we need to calculate 1 decibel
+// value form 200 samples, decibel value is calcualted by RMS formula
+
 void displayWAVDATA(short s[]){
 	double rms[80];
 	int db[80];
-	short *ptr = s; //we use a pointer, pointing to the beginning of array
-	int i, j;		// for nested looop counters, outer loop repeats 80 times
-					// inner loop repeats 200 times
+	short *ptr = s;		// we use a pointer, pointing to the beginning of array
+	int i, j;			// for nested loop counters, outer loop repeats 80 times
+						// inner loop repeats 200 times
 	for(i=0; i<80; i++){
-		double sum = 0;	//accumulate sum of squares
+		double sum = 0;		// accumulate sum of squares
 		for(j=0; j<200; j++){
 			sum += (*ptr) * (*ptr);
-			ptr++;		//pointing to next sample
+			ptr++;			// pointing to the next sample
 		}
 		rms[i] = sqrt(sum/200);
-		db[i] = 20*log10(rms[i]);	//decibel value
-#ifdef DEBUG						//condition compilation
-		printf("rms[%d] = %f\n", i, rms[i]);
-#endif
-	}	//end of for
-#ifndef DEBUG
+#ifdef DEBUG
+		printf("rms[%d] = %f\n", i , rms[i]);
+#endif 
+		db[i] = 20*log10(rms[i]);
+		}
+#ifndef DEBUG 
 	barChart(db);
-#endif
+	int peaks = findPeaks(db);
+	setColors(WHITE, bg(BLACK));
+	printf("\033[1;61H");
+	printf("Peaks: %d          \n", peaks);
+#endif 
 }
+
+
 
 void displayWAVHDR(struct WAVHDR h){
 #ifdef DEBUG
@@ -43,29 +126,26 @@ void displayWAVHDR(struct WAVHDR h){
 	showID("Format", h.Format);
 	showID("Subchunk1ID", h.Subchunk1ID);
 	printf("Subchunk1 size: %d\n", h.Subchunk1Size);
-	printf("Audio Format: %d\n", h.AudioFormat);
-	printf("Num. of Channels: %d\n", h.NumChannels);
-	printf("Sameple rate: %d\n", h.SampleRate);
-    printf("Byte rate: %d\n", h.ByteRate);
-    printf("Block Align: %d\n", h.BlockAlign);
-	printf("Bits per sample: %d\n", h.BitsPerSample);
-	showID("Subchunk2ID", h.Subchunk2ID);
-	printf("Subchunk2ID size: %d\n", h.Subchunk2Size);
+	printf("Audio format: %d\n", h.AudioFormat);
+	printf("Number of channels: %d\n", h.NumChannels);
+ 	printf("Sample rate: %d\n", h.SampleRate);
+ 	printf("Byte rate: %d\n", h.ByteRate);
+ 	printf("Block align: %d\n", h.BlockAlign);
+ 	printf("Bits per sample: %d\n", h.BitsPerSample);
+	showID("Subchunk1ID", h.Subchunk1ID);
+	printf("Subchunk2 size: %d\n", h.Subchunk2Size);
 #else
-	setColors(RED, bg(BLUE));
+	setColors(WHITE, bg(RED));
 	printf("\033[1;1H");
-	printf("test.wav			\n");
-	setColors(YELLOW, bg(GREEN));
+	printf("test.wav            ");
+	setColors(YELLOW, bg(BLUE));
 	printf("\033[1;21H");
-	printf("Sample rate=%d			\n", h.SampleRate);
-	setColors(WHITE,bg(MAGENTA));
-	printf("\033[1;61H");
-	printf("Duration=%.2f			\n", (float)h.Subchunk2Size/h.ByteRate);
-
-
+	printf("Sample rate:%dHz    ", h.SampleRate);
+	setColors(CYAN, bg(MAGENTA));
+	printf("\033[1;41H");
+	printf("Duration:%.2fsec	", (float)h.Subchunk2Size/h.ByteRate);
+	setColors(RED, bg(YELLOW));
 #endif
-	puts("");	//make a new line
-
-
-	//to be continue for other fields
 }
+
+
